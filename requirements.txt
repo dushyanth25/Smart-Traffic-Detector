@@ -1,6 +1,6 @@
 flask==2.3.2
 torch==2.0.1
-ultralytics==8.0.0
+ultralytics==8.0.20 
 opencv-python==4.7.0.72
 numpy==1.24.3
 pillow==9.5.0
