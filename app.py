@@ -8,21 +8,16 @@ import numpy as np
 import os
 
 app = Flask(__name__)
-
-# Ensure 'uploads' folder exists
 os.makedirs('uploads', exist_ok=True)
 
-# Load YOLO models
 vehicle_model = YOLO("yolov8n.pt")
 pedestrian_model = YOLO("yolov8n.pt")
 
-# Configuration
 vehicle_classes = ['car', 'bus', 'truck', 'motorcycle']
 pedestrian_class = 'person'
 vehicle_threshold = 6
 pedestrian_threshold = 8
 
-# Global state
 vehicle_count = 0
 pedestrian_count = 0
 vehicle_frame = None
@@ -57,11 +52,9 @@ def start_system():
     if not system_active:
         system_active = True
         stop_threads = False
-
         threading.Thread(target=process_vehicle_feed, daemon=True).start()
         threading.Thread(target=process_pedestrian_feed, daemon=True).start()
         threading.Thread(target=traffic_control_loop, daemon=True).start()
-
         return jsonify({'status': 'System started'})
     else:
         return jsonify({'status': 'System already running'})
@@ -76,7 +69,6 @@ def stop_system():
 @app.route('/upload', methods=['POST'])
 def upload_video():
     global vehicle_video_path, pedestrian_video_path
-
     video_type = request.form.get('type')
     file = request.files['file']
 
@@ -97,13 +89,11 @@ def frame_to_base64(frame):
 
 def process_vehicle_feed():
     global vehicle_count, vehicle_frame, stop_threads, vehicle_video_path
-
     cap = cv2.VideoCapture(vehicle_video_path if vehicle_video_path else 0)
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     while cap.isOpened() and not stop_threads:
         pause_vehicle.wait()
-
         ret, frame = cap.read()
         if not ret:
             break
@@ -119,7 +109,6 @@ def process_vehicle_feed():
 
 def process_pedestrian_feed():
     global pedestrian_count, pedestrian_frame, stop_threads, pedestrian_video_path
-
     cap = cv2.VideoCapture(pedestrian_video_path if pedestrian_video_path else 0)
     fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -180,3 +169,8 @@ def traffic_control_loop():
                 time.sleep(1)
 
         time.sleep(1)
+
+# 🚀 Deployment: Bind to 0.0.0.0 and dynamic port
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
